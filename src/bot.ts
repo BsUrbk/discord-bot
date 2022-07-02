@@ -2,8 +2,9 @@ import dotenv from 'dotenv'
 import { discordClient } from './utils/discord.client'
 import fs from 'fs'
 import path from 'path'
-import DisTube from "distube"
+import DisTube, { Queue, QueueManager } from "distube"
 import { SpotifyPlugin } from "@distube/spotify"
+import { BaseGuildTextChannel } from 'discord.js'
 
 dotenv.config()
 
@@ -31,28 +32,39 @@ discordClient.on('ready', async() => {
         }catch{ (err: any) => console.error(err); return}
     })
     
-    console.log('Bot is up')
+    console.info('Bot is up')
 })
 
 const distube = new DisTube(discordClient, {
     emitNewSongOnly: true,
-    leaveOnFinish: true,
+    leaveOnFinish: false,
+    leaveOnEmpty: false,
+    leaveOnStop: true,
     emitAddSongWhenCreatingQueue: false,
-    plugins: [new SpotifyPlugin()]
+    plugins: [new SpotifyPlugin()],
 })
 
 const prefix = "!"
 
-    discordClient.on("messageCreate", async (message) =>{
-        if(!message.content.startsWith(prefix) || message.content.trim().indexOf(prefix) !== 0 || message.author.bot || !message.guildId || !message.id)
-            return
+discordClient.on("messageCreate", async (message) =>{
+    if(!message.content.startsWith(prefix) || message.content.trim().indexOf(prefix) !== 0 || message.author.bot || !message.guildId || !message.id)
+        return
+
+    const name: string[] = message.content.trim().slice(1).split(' ')
     
-        const name: string[] = message.content.trim().slice(1).split(' ')
-    
-        if(commandNames[name[0]]){
-            return commandNames[name[0]].execute(message, distube)
-        }
+    if(commandNames[name[0]]){
+        return commandNames[name[0]].execute(message, distube)
+    }
         
-    })
+})
+
+distube.on("playSong", (queue: Queue, song) =>{
+    queue.textChannel?.send(`Playing ${song.name} - \`${song.formattedDuration}\``)
+})
+
+distube.on("addSong", (queue: Queue, song) =>{
+    queue.textChannel?.send(`Added ${song.name} \`${song.formattedDuration}\` to the queue`)
+})
+
 
 discordClient.login(process.env.TOKEN)

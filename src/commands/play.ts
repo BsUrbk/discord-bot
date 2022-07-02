@@ -1,6 +1,5 @@
-import { Client, Message, Collection } from "discord.js"
-import DisTube, { SearchResult } from "distube"
-import { discordClient } from "../utils/discord.client"
+import { Message } from "discord.js"
+import DisTube from "distube"
 
 export default{
     name: 'play',
@@ -13,7 +12,7 @@ export default{
         }
         
         const [command, ...song]: string[] = message.content.trim().slice(1).split(' ')
-        
+
         const choices = await disTube.search(song.toString(), { limit: 10 })
         const response: string[] = choices.map((el, index) => {
             if(index == 0){
@@ -22,6 +21,9 @@ export default{
             return `**${index+1}.** ${el.uploader.name} ${el.name} - \`${el.formattedDuration}\` \r\n`
             
         })
+        if(choices.length == 1 && message.member?.voice.channel != null && message.channel.type == "GUILD_TEXT"){
+            return disTube.play(message.member.voice.channel, choices[0], {message: message, textChannel: message.channel})
+        }
         message.channel.send({
             content: `${response.join('')}`
         })
@@ -32,12 +34,15 @@ export default{
                 time: 60000,
                 errors: ['time']
             })
-            .then(collected => {
-                const choice = collected.first()?.content.trim()  
+            .then(collected => {        
+                const choice = collected.first()?.content.trim() 
 
                 if(parseInt(choice ? choice : '1') > 0 && parseInt(choice ? choice : '1') <= 10){
-                    if(message.member?.voice.channel != null){
-                        disTube.play(message.member.voice.channel, choices[parseInt(choice ? choice : '1')-1], {position: 0})
+                    if(message.member?.voice.channel != null && message.channel.type == "GUILD_TEXT"){
+                        try{disTube.play(message.member.voice.channel, choices[parseInt(choice ? choice : '1')-1], {message: message, textChannel: message.channel, member: message.member})}
+                        catch{
+                            return message.channel.send("Bot is not in voice channel")
+                        }
                     }
                 }else{
                     message.reply({
