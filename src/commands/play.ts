@@ -6,9 +6,7 @@ export default{
     description: 'music player',
     async execute(message: Message, disTube: DisTube){
         if(!message.member?.voice.channel){
-            return message.reply({
-                content: "You're not in the voice channel"
-            })
+            return message.channel.send("**You're not in the voice channel**")
         }
         
         const [command, ...song]: string[] = message.content.trim().slice(1).split(' ')
@@ -41,12 +39,12 @@ export default{
                     if(message.member?.voice.channel != null && message.channel.type == "GUILD_TEXT"){
                         try{disTube.play(message.member.voice.channel, choices[parseInt(choice ? choice : '1')-1], {message: message, textChannel: message.channel, member: message.member})}
                         catch{
-                            return message.channel.send("Bot is not in voice channel")
+                            return message.channel.send("**Bot is not in voice channel**")
                         }
                     }
                 }else{
                     message.reply({
-                        content: 'Incorrect choice'
+                        content: '**Incorrect choice**'
                     })
                 }
             })       

@@ -6,12 +6,10 @@ export default{
     description: 'disconnects bot from voice channel',
     async execute(message: Message, disTube: DisTube){
         if(!message.member?.voice.channel){
-            return message.reply({
-                content: "You're not in the voice channel"
-            })
+            return message.channel.send("**You're not in the voice channel**")
         }
-
+        
+        message.channel.send("**Leaving the channel**")
         disTube.stop(message)
-        message.channel.send("Leaving the channel")
     }
 }
