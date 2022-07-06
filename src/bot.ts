@@ -4,19 +4,20 @@ import fs from 'fs'
 import path from 'path'
 import DisTube, { Queue, QueueManager } from "distube"
 import { SpotifyPlugin } from "@distube/spotify"
-import { BaseGuildTextChannel } from 'discord.js'
+import { GuildMember } from 'discord.js'
+import EventHandler from "./utils/event.handler"
 
 dotenv.config()
 
 const commandNames: any = {}
+const eventHandler = new EventHandler
 
 discordClient.on('ready', async() => {
     let commands: any
     const commandFiles = fs.readdirSync(path.join(__dirname, process.env.COMMANDS_DIR as string))
     commands = discordClient.application?.commands
 
-    const importedCommands = commandFiles.map((commandFile) =>{
-        
+    const importedCommands = commandFiles.map((commandFile) =>{  
         return import(`./commands/${commandFile}`)
     })
 
@@ -57,6 +58,10 @@ discordClient.on("messageCreate", async (message) =>{
     }
         
 })
+
+// discordClient.on("guildMemberAdd", (member: GuildMember) =>{
+//     eventHandler.createMemberProfile(member)
+// })
 
 distube.on("playSong", (queue: Queue, song) =>{
     queue.textChannel?.send(`Playing ${song.name} - \`${song.formattedDuration}\``)

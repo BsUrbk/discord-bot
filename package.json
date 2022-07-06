@@ -32,6 +32,9 @@
     "python": "^0.0.4",
     "sodium": "^3.0.2"
   },
+  "prisma":{
+    "seed": "ts-node prisma/seed.ts"
+  },
   "devDependencies": {
     "@types/express": "^4.17.13",
     "@types/node": "^18.0.0",
